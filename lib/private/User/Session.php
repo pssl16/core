@@ -96,19 +96,24 @@ class Session implements IUserSession, Emitter {
 	/** @var User $activeUser */
 	protected $activeUser;
 
+	/** @var IAppManager $appManager */
+	private $appManager;
+
 	/**
 	 * @param IUserManager $manager
 	 * @param ISession $session
 	 * @param ITimeFactory $timeFacory
 	 * @param IProvider $tokenProvider
 	 * @param IConfig $config
+	 * @param IAppManager $appManager
 	 */
-	public function __construct(IUserManager $manager, ISession $session, ITimeFactory $timeFacory, $tokenProvider, IConfig $config) {
+	public function __construct(IUserManager $manager, ISession $session, ITimeFactory $timeFacory, $tokenProvider, IConfig $config, IAppManager $appManager) {
 		$this->manager = $manager;
 		$this->session = $session;
 		$this->timeFacory = $timeFacory;
 		$this->tokenProvider = $tokenProvider;
 		$this->config = $config;
+		$this->appManager = $appManager;
 	}
 
 	/**
@@ -688,12 +693,10 @@ class Session implements IUserSession, Emitter {
 	 * @throws Exception If the auth module could not be loaded
 	 */
 	public function tryAuthModuleLogin(IRequest $request) {
-		/** @var IAppManager $appManager */
-		$appManager = OC::$server->query('AppManager');
-		$allApps = $appManager->getInstalledApps();
+		$allApps = $this->appManager->getInstalledApps();
 
 		foreach ($allApps as $appId) {
-			$info = $appManager->getAppInfo($appId);
+			$info = $this->appManager->getAppInfo($appId);
 
 			if (isset($info['auth-modules'])) {
 				$authModules = $info['auth-modules'];
